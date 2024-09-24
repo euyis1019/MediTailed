@@ -14,7 +14,7 @@ import numpy as np
 from torch.cuda.amp import GradScaler, autocast
 
 from PIL import Image
-from src.data_loader.datasets import build_dataset
+from src.Deprecated_data_loader.datasets import build_dataset
 import tqdm
 from src.helper_functions.metrics import *
 

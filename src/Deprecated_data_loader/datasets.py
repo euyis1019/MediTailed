@@ -1,6 +1,6 @@
 import torch
 from torch.utils.data import Dataset
-from src.data_loader.imagelist import *
+from src.Deprecated_data_loader.imagelist import *
 
 class CustomDatasetCaption(Dataset):
     """Dataset.
