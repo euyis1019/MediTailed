@@ -7,8 +7,8 @@ import folder_tree
 
 # parameters
 output = folder_tree.print_tree(
-    path='D:\project\MediTailed\data\Medi',
-    max_depth=2,
+    path='D:\project\MediTailed\data\PBC_dataset_normal_DIB',
+    max_depth=0,
     exclude=['.git', 'coco', 'voc'],
     exclude_patterns=['*.pyc', '__pycache__','*.dll'],
     show_hidden=False,
