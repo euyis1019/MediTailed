@@ -17,7 +17,9 @@ classes_to_labels = {
     'neutrophil': 6,
     'platelet': 7
 }
+classes_to_description = {
 
+}
 # 定义类别列表
 classes = list(classes_to_labels.keys())
 
@@ -127,13 +129,20 @@ def construct_dataloader_from_txt(root_dir, splits=None, batch_size=32, num_work
 
 if __name__ == "__main__":
     labels_to_description = {
-
+        0:"This image is a basophil, it is characterized by its round shape and dark-staining granules. The nucleus is often obscured by these granules, which appear dense and dark purple when stained.",
+        1:"This image displays an eosinophil, it is bilobed nucleus and distinctive red to pink staining granules. The granules fill most of the cell's cytoplasm, and the bilobed nucleus appears dark purple.",
+        2:"This image shows an erythroblast，it is characterized by its large, dark-stained nucleus occupying much of the cell. The cytoplasm is relatively scant and takes on a bluish hue due to the presence of ribosomes. The erythroblast's round, dense nucleus and the smaller, darker cell body distinguish it from other cell types in the blood smear.",
+        3:"this is a photo of ig, it is characterized by a large, round nucleus that occupies most of the cell’s volume, stained dark purple or blue.",
+        4:"This is a photo of lymphocytes, it is characterized by their large, darkly stained nucleus, which occupies most of the cell’s interior, leaving only a thin rim of lighter cytoplasm. The nucleus is dense and round or slightly irregular in shape",
+        5:"The nucleus is stained dark purple or blue, with the surrounding cytoplasm appearing lighter in color, it has a irregular or lobulated nucleus",
+        6:"This is a neutrophil, it is horseshoe-shaped nucleus, the nucleus is stained dark purple, while the cytoplasm is lighter in color and appears to have a granular texture.",
+        7:"The platelet in this image appears as a small, round, granular structure stained deep purple or blue. It is significantly smaller than other cells."        
     }
-    root_dir = r'D:\project\MediTailed\data\PBC_dataset_normal_DIB'  # 替换为实际路径
+    root_dir = r''  # 替换为实际路径
 
     # 选择要包含的txt文件后缀
     # 例如，仅加载训练集和验证集的txt文件
-    splits = None  # 可选: ['train', 'val', 'test'], 或者设置为 None 以加载主类的txt文件
+    splits = ['train']  # 可选: ['train', 'val', 'test'], 或者设置为 None 以加载主类的txt文件
 
     # 构建 DataLoader
     dataloader = construct_dataloader_from_txt(root_dir, splits=splits, batch_size=32, num_workers=4, shuffle=True)
@@ -143,7 +152,11 @@ if __name__ == "__main__":
         print(f"Batch {batch_idx + 1}:")
         #print(f" - Images shape: {images.shape}")  # 例如: torch.Size([32, 3, 224, 224])
         print(f" - Labels: {labels}")  # 例如: tensor([0, 1, 0, ..., 7])
+        print(labels.shape)#[batch_size, 1]
+        des = [labels_to_description[label.item()] for label in labels]
+        #des:[batch_size,]        
+        
 
         # 在这里添加你的训练代码
-        if batch_idx == 2000:  # 仅演示前3个批次
+        if batch_idx == 5:  # 仅演示前3个批次
             break
