@@ -15,7 +15,7 @@ classes_to_labels = {
 }
 
 # 根目录，包含各个类别的子文件夹
-root_dir = r'D:\project\MediTailed\data\PBC_dataset_normal_DIB'
+root_dir = r'/home/gyf/gyf/MediTailed/data/PBC_dataset_normal_DIB'
 
 # 分割比例
 train_ratio = 0.8
@@ -43,6 +43,11 @@ for cls, label in classes_to_labels.items():
 
     # 计算各部分数量
     total = len(image_files)
+    all_txt = os.path.join(root_dir, f"{cls}.txt")
+    with open(all_txt, 'w') as f:
+        for i in image_files:
+            f.write(f"{img_path},{label}\n")
+    print("All has generated.")
     train_end = int(total * train_ratio)
     val_end = train_end + int(total * val_ratio)
 
