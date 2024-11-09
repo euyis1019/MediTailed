@@ -16,7 +16,14 @@ classes_to_labels = {
     'neutrophil': 6,
     'platelet': 7
 }
-
+classes_to_labels_WBC = {
+    'basophil': 0,
+    'eosinophil':1,
+    'lymphocyte': 2,
+    'monocyte': 3,
+    'neutrophil': 4,
+}
+classes_to_labels = classes_to_labels_WBC
 # 定义类别列表
 classes = list(classes_to_labels.keys())
 
@@ -149,7 +156,7 @@ def compute_mean_std(dataloader):
     return mean.tolist(), std.tolist()
 
 if __name__ == "__main__":
-    root_dir = r'D:\project\MediTailed\data\PBC_dataset_normal_DIB'  # 替换为实际路径
+    root_dir = '/home/yf_guo/PAPER/MediTailed/data/LDWBC'  # 替换为实际路径
 
     # 选择要包含的txt文件后缀
     splits = None  # 通常建议仅在训练集上计算

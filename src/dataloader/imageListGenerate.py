@@ -3,7 +3,7 @@ import glob
 import random
 
 # 类别与标签的对应关系
-classes_to_labels = {
+classes_to_labels_PBC = {
     'basophil': 0,
     'eosinophil': 1,
     'erythroblast': 2,
@@ -13,9 +13,26 @@ classes_to_labels = {
     'neutrophil': 6,
     'platelet': 7
 }
-
+classes_to_labels_WBC = {
+    'basophil': 0,
+    'eosinophil':1,
+    'lymphocyte': 2,
+    'monocyte': 3,
+    'neutrophil': 4,
+}
+classes_to_labels_LDWBC = {
+    'basophil': 0,
+    'eosinophil':1,
+    'lymphocyte': 2,
+    'monocyte': 3,
+    'neutrophil': 4,
+}
 # 根目录，包含各个类别的子文件夹
-root_dir = r'/home/gyf/gyf/MediTailed/data/PBC_dataset_normal_DIB'
+classes_to_labels = classes_to_labels_LDWBC
+import os
+root_dir = os.getcwd()
+root_dir = os.path.join('/home/yf_guo/PAPER/MediTailed/data/LDWBC')
+print(root_dir)
 
 # 分割比例
 train_ratio = 0.8
@@ -46,7 +63,7 @@ for cls, label in classes_to_labels.items():
     all_txt = os.path.join(root_dir, f"{cls}.txt")
     with open(all_txt, 'w') as f:
         for i in image_files:
-            f.write(f"{img_path},{label}\n")
+            f.write(f"{i},{label}\n")
     print("All has generated.")
     train_end = int(total * train_ratio)
     val_end = train_end + int(total * val_ratio)

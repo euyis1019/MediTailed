@@ -5,6 +5,7 @@ from PIL import Image
 import torch
 from torch.utils.data import Dataset, DataLoader
 from torchvision import transforms
+from typing import List
 
 # 定义类别与标签的对应关系
 classes_to_labels = {
@@ -18,14 +19,21 @@ classes_to_labels = {
     'platelet': 7
 }
 classes_to_description = {
-
+    0:"This image is a basophil, it is characterized by its round shape and dark-staining granules. The nucleus is often obscured by these granules, which appear dense and dark purple when stained.",
+    1:"This image displays an eosinophil, it is bilobed nucleus and distinctive red to pink staining granules. The granules fill most of the cell's cytoplasm, and the bilobed nucleus appears dark purple.",
+    2:"This image shows an erythroblast，it is characterized by its large, dark-stained nucleus occupying much of the cell. The cytoplasm is relatively scant and takes on a bluish hue due to the presence of ribosomes. The erythroblast's round, dense nucleus and the smaller, darker cell body distinguish it from other cell types in the blood smear.",
+    3:"this is a photo of ig, it is characterized by a large, round nucleus that occupies most of the cell’s volume, stained dark purple or blue.",
+    4:"This is a photo of lymphocytes, it is characterized by their large, darkly stained nucleus, which occupies most of the cell’s interior, leaving only a thin rim of lighter cytoplasm. The nucleus is dense and round or slightly irregular in shape",
+    5:"The nucleus is stained dark purple or blue, with the surrounding cytoplasm appearing lighter in color, it has a irregular or lobulated nucleus",
+    6:"This is a neutrophil, it is horseshoe-shaped nucleus, the nucleus is stained dark purple, while the cytoplasm is lighter in color and appears to have a granular texture.",
+    7:"The platelet in this image appears as a small, round, granular structure stained deep purple or blue. It is significantly smaller than other cells."        
 }
 # 定义类别列表
 classes = list(classes_to_labels.keys())
 
 
 class ImageListDataset(Dataset):
-    def __init__(self, txt_files, transform=None):
+    def __init__(self, txt_files, transform=None, num_list:List[int]=None):
         """
         自定义数据集，读取多个txt文件，包含图像路径和标签。
 
@@ -34,16 +42,26 @@ class ImageListDataset(Dataset):
             transform (callable, optional): 图像变换函数。
         """
         self.image_labels = []
-        for txt_file in txt_files:
+        for txt_file,num in zip(txt_files,num_list):
             with open(txt_file, 'r') as f:
-                for line in f:
-                    line = line.strip()
-                    if line:
-                        try:
-                            path, label = line.split(',')
-                            self.image_labels.append((path, int(label)))
-                        except ValueError:
-                            print(f"警告: 文件 {txt_file} 中的行格式不正确: '{line}'")
+                if num!=0:
+                    for line,i in zip(f,range(num)):
+                        line = line.strip()
+                        if line:
+                            try:
+                                path, label = line.split(',')
+                                self.image_labels.append((path, int(label)))
+                            except ValueError:
+                                print(f"警告: 文件 {txt_file} 中的行格式不正确: '{line}'")
+                else:
+                    for line in f:
+                        line = line.strip()
+                        if line:
+                            try:
+                                path, label = line.split(',')
+                                self.image_labels.append((path, int(label)))
+                            except ValueError:
+                                print(f"警告: 文件 {txt_file} 中的行格式不正确: '{line}'")  
         self.transform = transform
 
     def __len__(self):
@@ -68,8 +86,7 @@ def get_txt_files(root_dir, include_splits=None):
     Args:
         root_dir (str): 包含txt文件的根目录。
         include_splits (list, optional): 需要包含的txt文件后缀，如 ['train', 'val']。
-                                        如果为None，则包含所有主类的txt文件（如 'basophil.txt'）。
-
+                                        如果为None，则包含所有主类的txt文件（如 'basophil.txt'）
     Returns:
         list: 符合条件的txt文件路径列表。
     """
@@ -81,7 +98,7 @@ def get_txt_files(root_dir, include_splits=None):
                 if os.path.exists(txt_file):
                     txt_files.append(txt_file)
                 else:
-                    print(f"警告: 预期的文件 {txt_file} 不存在。")
+                    print(f"警告: 预期的文件 {root_dir}/{txt_file} 不存在。")
         else:
             # 包含所有主类的txt文件，但排除带有特定后缀的txt文件
             pattern = os.path.join(root_dir, f"{cls}.txt")
@@ -92,7 +109,7 @@ def get_txt_files(root_dir, include_splits=None):
     return txt_files
 
 
-def construct_dataloader_from_txt(root_dir, splits=None, batch_size=32, num_workers=4, shuffle=True):
+def construct_dataloader_from_txt(root_dir, splits=None, batch_size=32, num_workers=4, shuffle=True, num_list:List[int]=None, dataset_transform:list=None):
     """
     从指定的txt文件构建DataLoader。
 
@@ -107,20 +124,32 @@ def construct_dataloader_from_txt(root_dir, splits=None, batch_size=32, num_work
     Returns:
         DataLoader: 构建好的DataLoader对象。
     """
+    if num_list is None:
+        num_list = [0]*8
     txt_files = get_txt_files(root_dir, include_splits=splits)
+    print(txt_files)
     if not txt_files:
         raise ValueError("未找到符合条件的txt文件。请检查目录和文件名。")
 
     # 定义图像变换
-    transform = transforms.Compose([
-        transforms.Resize((224, 224)),  # 调整图像大小
-        transforms.ToTensor(),  # 转换为Tensor
-        transforms.Normalize([0.874, 0.749, 0.722],  # 使用你的数据集的均值
-                             [0.158, 0.185, 0.079])  # 使用你的数据集的标准差
-    ])
+    if dataset_transform is None:
+        transform = transforms.Compose([
+            transforms.Resize((384, 384)),  # 调整图像大小
+            transforms.ToTensor(),  # 转换为Tensor
+            transforms.Normalize([0.874, 0.749, 0.722],  # 使用你的数据集的均值
+                                [0.158, 0.185, 0.079])  # 使用你的数据集的标准差
+        ])
+    else:
+        transform = transforms.Compose(
+            [
+                transforms.Resize((384, 384)),  # 调整图像大小
+                transforms.ToTensor(),  # 转换为Tensor
+                transforms.Normalize(transform[0],transform[1])  # 使用你的数据集的标准差
+            ]
+        )
 
     # 创建自定义数据集
-    dataset = ImageListDataset(txt_files, transform=transform)
+    dataset = ImageListDataset(txt_files, transform=transform, num_list=num_list)
 
     # 创建 DataLoader
     dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=shuffle, num_workers=num_workers)
@@ -138,25 +167,4 @@ if __name__ == "__main__":
         6:"This is a neutrophil, it is horseshoe-shaped nucleus, the nucleus is stained dark purple, while the cytoplasm is lighter in color and appears to have a granular texture.",
         7:"The platelet in this image appears as a small, round, granular structure stained deep purple or blue. It is significantly smaller than other cells."        
     }
-    root_dir = r''  # 替换为实际路径
 
-    # 选择要包含的txt文件后缀
-    # 例如，仅加载训练集和验证集的txt文件
-    splits = ['train']  # 可选: ['train', 'val', 'test'], 或者设置为 None 以加载主类的txt文件
-
-    # 构建 DataLoader
-    dataloader = construct_dataloader_from_txt(root_dir, splits=splits, batch_size=32, num_workers=4, shuffle=True)
-
-    # 使用 DataLoader 进行迭代
-    for batch_idx, (images, labels) in enumerate(dataloader):
-        print(f"Batch {batch_idx + 1}:")
-        #print(f" - Images shape: {images.shape}")  # 例如: torch.Size([32, 3, 224, 224])
-        print(f" - Labels: {labels}")  # 例如: tensor([0, 1, 0, ..., 7])
-        print(labels.shape)#[batch_size, 1]
-        des = [labels_to_description[label.item()] for label in labels]
-        #des:[batch_size,]        
-        
-
-        # 在这里添加你的训练代码
-        if batch_idx == 5:  # 仅演示前3个批次
-            break
